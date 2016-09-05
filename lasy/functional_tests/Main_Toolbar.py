@@ -84,11 +84,23 @@ class MainPage(unittest.TestCase):
         opgl = driver.find_element_by_css_selector(opgl_css)
         driver.implicitly_wait(3)
         opgl.click()
-
-
         pgl_url = "http://www.lasy.gov.pl/nasza-praca/pgl-lasy-panstwowe"
-        self.assertEqual(pgl_url, driver.current_url,"pgl url error")
+        driver.implicitly_wait(2)  # seconds
+#        self.assertEqual(pgl_url, driver.current_url,"pgl url error")
         action_chains = ActionChains(driver)
+        zasoby_le_css = "#content_wrap ul>li[id='portaltab-nasza-praca']>ul[class='submenu']>li:nth-of-type(2)>a"
+        zasoby_le = WebDriverWait(driver, 15).until(lambda driver: driver.find_element_by_css_selector(zasoby_le_css))
+        zasoby_le.click()
+        driver.implicitly_wait(2)  # seconds
+        zasoby_url = "http://www.lasy.gov.pl/nasza-praca/zasoby-lesne"
+        self.assertEqual(zasoby_url, driver.current_url, "pgl url error")
+
+    def search_bar(self):
+        driver = self.driver
+        search_b_css = "#content_wrap #main #bg_menu .container >div>form .btn_search>input"
+        search_input_css = "#content_wrap #main #bg_menu .container >div>form .box_input_text>input"
+        action_chains = ActionChains(driver)
+        action_chains.move_to_element(search_b_css).click_and_hold(search_b_css).click(search_input_css).perform()
 
 
 
