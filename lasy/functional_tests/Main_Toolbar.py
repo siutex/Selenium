@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import ActionChains
+from selenium.common.exceptions import TimeoutException
 import unittest
 
 class MainPage(unittest.TestCase):
@@ -42,7 +43,6 @@ class MainPage(unittest.TestCase):
             EC.presence_of_element_located((By.CSS_SELECTOR, polskie_lasy_css))
             )
         finally:
-            #driver.implicitly_wait(3)  # seconds
             element.click()
         title= driver.current_url
         driver.implicitly_wait(2)  # seconds
@@ -89,20 +89,39 @@ class MainPage(unittest.TestCase):
 #        self.assertEqual(pgl_url, driver.current_url,"pgl url error")
         action_chains = ActionChains(driver)
         zasoby_le_css = "#content_wrap ul>li[id='portaltab-nasza-praca']>ul[class='submenu']>li:nth-of-type(2)>a"
-        zasoby_le = WebDriverWait(driver, 15).until(lambda driver: driver.find_element_by_css_selector(zasoby_le_css))
-        zasoby_le.click()
-        driver.implicitly_wait(2)  # seconds
-        zasoby_url = "http://www.lasy.gov.pl/nasza-praca/zasoby-lesne"
-        self.assertEqual(zasoby_url, driver.current_url, "pgl url error")
+        try:
+            zasoby_le = WebDriverWait(driver, 15).until(lambda driver: driver.find_element_by_css_selector(zasoby_le_css))
+            zasoby_le.click()
+        except TimeoutException:
+            print("Zasoby page unavaible timeout")
 
-    def search_bar(self):
+        driver.implicitly_wait(2)  # seconds
+        zasoby_url = "http://90lat.lasy.gov.pl/#0"
+        self.assertEqual(zasoby_url, driver.current_url, "pgl url error")
+        polski_css = "div[id='loadingScreen']>div>div[id='loading-progress']>a[href*='pl']"
+        driver.implicitly_wait(2)
+        polski =  driver.find_element_by_css_selector(polski_css)
+        polski.click()
+
+
+    def test_search_bar(self):
         driver = self.driver
         search_b_css = "#content_wrap #main #bg_menu .container >div>form .btn_search>input"
         search_input_css = "#content_wrap #main #bg_menu .container >div>form .box_input_text>input"
         action_chains = ActionChains(driver)
-        action_chains.move_to_element(search_b_css).click_and_hold(search_b_css).click(search_input_css).perform()
-
-
+        search_b = driver.find_element_by_css_selector(search_b_css)
+        search_input = driver.find_element_by_css_selector(search_input_css)
+       # driver.save_screenshot('screenshot.png')
+        driver.implicitly_wait(2)  # seconds
+        action_chains.move_to_element(search_b).click(search_b).move_to_element(search_input).perform()
+        driver.implicitly_wait(2)  # seconds
+        search_input.send_keys("drewno")
+        drewno_url = "http://www.lasy.gov.pl/@@search?q=drewno"
+        search_b.click()
+        self.assertEqual(driver.current_url, drewno_url)
+        driver.back()
+        lasy_url = "http://www.lasy.gov.pl/"
+        self.assertEqual(lasy_url, driver.current_url)
 
     def test_find_logo_location(self):
         driver = self.driver
